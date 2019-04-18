@@ -2,6 +2,8 @@ package main;
 
 import java.awt.EventQueue;
 
+import javax.swing.UIManager;
+
 import frame.MainFrame;
 
 public class Main {
@@ -12,6 +14,7 @@ public class Main {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
 					MainFrame frame = new MainFrame();
 					frame.setVisible(true);
 				} catch (Exception e) {

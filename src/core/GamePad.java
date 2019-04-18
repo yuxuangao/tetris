@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 
@@ -14,11 +15,13 @@ public class GamePad extends JPanel implements KeyListener {
 	private boolean[][] staticCells;
 	private Item item;
 	private MainLoop mainLoop;
+	private int score;
 
 	/**
 	 * Create the panel.
 	 */
 	public GamePad(int width, int height, int cellLength) {
+		setBackground(Color.WHITE);
 		setBorder(new LineBorder(new Color(0, 51, 255)));
 		cells = new Cell[height][width];
 		staticCells = new boolean[height][width];
@@ -29,15 +32,25 @@ public class GamePad extends JPanel implements KeyListener {
 			for (int j = 0; j < width; j++) {
 				cells[i][j] = new Cell(cellLength);
 				cells[i][j].setLocation(j * cellLength, i * cellLength);
-				cells[i][j].setVisible(false);
-				staticCells[i][j] = false;
 				add(cells[i][j]);
 			}
+
+		clear();
 
 		addKeyListener(this);
 	}
 
+	public void clear() {
+		for (int i = 0; i < cells.length; i++)
+			for (int j = 0; j < cells[0].length; j++) {
+				cells[i][j].setVisible(false);
+				staticCells[i][j] = false;
+			}
+		score = 0;
+	}
+
 	public void start() {
+		clear();
 		newItem();
 		requestFocus();
 
@@ -51,6 +64,11 @@ public class GamePad extends JPanel implements KeyListener {
 		item = Item.generateRandom();
 		item.setLocation((int)Math.floor(cells[0].length / 2 - 1), (int)Math.floor(Math.log(item.getStatus()) / Math.log(16)) - 3);
 		showCell();
+
+		if (isOverlay()) {
+			mainLoop.stop();
+			JOptionPane.showMessageDialog(this, "fail");
+		}
 	}
 
 	private void showCell() {
@@ -123,6 +141,24 @@ public class GamePad extends JPanel implements KeyListener {
 		}
 	}
 
+	private void checkLine() {
+		for (int i = cells.length - 1; i >= 0; i--) {
+			boolean sum = true;
+			for (int j = 0; j < cells[0].length; j++)
+				sum &= staticCells[i][j];
+			if (sum)
+				deleteLine(i);
+		}
+	}
+
+	private void deleteLine(int line) {
+		for (int i = line; i > 0; i--)
+			for (int j = 0; j < cells[0].length; j++)
+				staticCells[i][j] = staticCells[i - 1][j];
+		for (int j = 0; j < cells[0].length; j++)
+			staticCells[0][j] = false;
+	}
+
 	private void fixItem() {
 		for (int i = 0; i < 4; i++)
 			for (int j = 0; j < 4; j++) {
@@ -130,6 +166,7 @@ public class GamePad extends JPanel implements KeyListener {
 					continue;
 				staticCells[item.getY() + i][item.getX() + j] = staticCells[item.getY() + i][item.getX() + j] || item.getArray()[i][j];
 			}
+		checkLine();
 	}
 
 	private boolean isOverlay() {
@@ -149,6 +186,7 @@ public class GamePad extends JPanel implements KeyListener {
 	}
 
 	public void resume() {
+		requestFocus();
 		if (mainLoop != null)
 			mainLoop.resume();
 	}
@@ -156,6 +194,11 @@ public class GamePad extends JPanel implements KeyListener {
 	public void stop() {
 		if (mainLoop != null)
 			mainLoop.stop();
+		clear();
+	}
+
+	public int getScore() {
+		return score;
 	}
 
 	@Override
@@ -174,6 +217,7 @@ public class GamePad extends JPanel implements KeyListener {
 			itemTurn();
 			showCell();
 		} else if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+			mainLoop.pause();
 			itemDown();
 			showCell();
 		}
@@ -181,6 +225,7 @@ public class GamePad extends JPanel implements KeyListener {
 
 	@Override
 	public void keyReleased(KeyEvent e) {
+		mainLoop.resume();
 	}
 
 	private class MainLoop implements Runnable {
