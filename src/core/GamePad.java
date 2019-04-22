@@ -11,11 +11,18 @@ import javax.swing.border.LineBorder;
 
 public class GamePad extends JPanel implements KeyListener {
 
+	public interface ScoreCallback {
+		public void scoreUpdate(int score);
+	}
+
+	private static final int[] EARN_SCORE = {1, 3, 6, 10};
+
 	private Cell[][] cells;
 	private boolean[][] staticCells;
 	private Item item;
 	private MainLoop mainLoop;
 	private int score;
+	private ScoreCallback scoreCallback;
 
 	/**
 	 * Create the panel.
@@ -47,6 +54,9 @@ public class GamePad extends JPanel implements KeyListener {
 				staticCells[i][j] = false;
 			}
 		score = 0;
+		if (scoreCallback != null) {
+			scoreCallback.scoreUpdate(score);
+		}
 	}
 
 	public void start() {
@@ -142,12 +152,22 @@ public class GamePad extends JPanel implements KeyListener {
 	}
 
 	private void checkLine() {
+		int lines = 0;
 		for (int i = cells.length - 1; i >= 0; i--) {
 			boolean sum = true;
 			for (int j = 0; j < cells[0].length; j++)
 				sum &= staticCells[i][j];
-			if (sum)
-				deleteLine(i);
+			if (sum) {
+				deleteLine(i++);
+				lines++;
+			}
+		}
+
+		if (lines > 0) {
+			score += EARN_SCORE[lines - 1];
+			if (scoreCallback != null) {
+				scoreCallback.scoreUpdate(score);
+			}
 		}
 	}
 
@@ -199,6 +219,10 @@ public class GamePad extends JPanel implements KeyListener {
 
 	public int getScore() {
 		return score;
+	}
+
+	public void setScoreCallback(ScoreCallback scoreCallback) {
+		this.scoreCallback = scoreCallback;
 	}
 
 	@Override

@@ -1,13 +1,12 @@
 package core;
 
-import java.util.Calendar;
-import java.util.Random;
+import common.Constants;
 
 public class Item {
 
-	private static final char[] TYPE = {0x000f, 0x00cc, 0x088c, 0x044c, 0x08c4, 0x04c8};
+	private static final int[] TYPE = {0x000f, 0x00cc, 0x088c, 0x044c, 0x08c4, 0x04c8};
 
-	private char status;
+	private int status;
 	private int x;
 	private int y;
 
@@ -24,10 +23,10 @@ public class Item {
 	}
 
 	public static Item generateRandom() {
-		return new Item(new Random(Calendar.getInstance().getTimeInMillis()).nextInt(TYPE.length)).turnLeft(new Random(Calendar.getInstance().getTimeInMillis()).nextInt(4));
+		return new Item(Constants.random.nextInt(TYPE.length)).turnLeft(Constants.random.nextInt(4));
 	}
 
-	public char getStatus() {
+	public int getStatus() {
 		return status;
 	}
 
@@ -35,7 +34,7 @@ public class Item {
 		boolean[][] array = new boolean[4][4];
 		for (int i = 0; i < 4; i++)
 			for (int j = 0; j < 4; j++) {
-				array[i][j] = (status & (char)Math.pow(2, 15 - i * 4 - j)) != 0;
+				array[i][j] = (status & (int)Math.pow(2, 15 - i * 4 - j)) != 0;
 			}
 		return array;
 	}
@@ -46,7 +45,7 @@ public class Item {
 			for (int i = 0; i < 4; i++)
 				for (int j = 3; j >= 0; j--) {
 					newStatus *= 2;
-					newStatus += (status & (char)Math.pow(2, j * 4 + i)) == 0 ? 0 : 1;
+					newStatus += (status & (int)Math.pow(2, j * 4 + i)) == 0 ? 0 : 1;
 				}
 			status = newStatus;
 		}
